@@ -426,12 +426,12 @@ with open("city.log", "r") as f:
 
 ```
 
-    Call 0: pevek (http://api.openweathermap.org/data/2.5/weather?lat=76&lon=169&APPID=3d2e93d0c041ca648839058021e3afe2)
-    Call 1: kattivakkam (http://api.openweathermap.org/data/2.5/weather?lat=12&lon=86&APPID=3d2e93d0c041ca648839058021e3afe2)
-    Call 2: nikolskoye (http://api.openweathermap.org/data/2.5/weather?lat=31&lon=175&APPID=3d2e93d0c041ca648839058021e3afe2)
-    Call 3: atuona (http://api.openweathermap.org/data/2.5/weather?lat=-6&lon=-129&APPID=3d2e93d0c041ca648839058021e3afe2)
-    Call 4: barinas (http://api.openweathermap.org/data/2.5/weather?lat=8&lon=-70&APPID=3d2e93d0c041ca648839058021e3afe2)
-    Call 5: limbe (http://api.openweathermap.org/data/2.5/weather?lat=4&lon=9&APPID=3d2e93d0c041ca648839058021e3afe2)
+    Call 0: pevek (http://api.openweathermap.org/data/2.5/weather?lat=76&lon=169)
+    Call 1: kattivakkam (http://api.openweathermap.org/data/2.5/weather?lat=12&lon=86)
+    Call 2: nikolskoye (http://api.openweathermap.org/data/2.5/weather?lat=31&lon)
+    Call 3: atuona (http://api.openweathermap.org/data/2.5/weather?lat=-6&lon=-129)
+    Call 4: barinas (http://api.openweathermap.org/data/2.5/weather?lat=8&lon=-70)
+    Call 5: limbe (http://api.openweathermap.org/data/2.5/weather?lat=4&lon=9)
     
     ...
 ```
