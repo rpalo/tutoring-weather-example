@@ -6,7 +6,7 @@
  3. Showcase Cloudiness (% coverage) vs. Latitude (deg)
  4. Showcase Wind Speed (mph) vs. Latitude (deg)
  
-These plots are based on 500 unique cities, randomly selected.  Compete city API log in [city.log](./city_log.txt).  Full data in [weather.csv](./weather.csv).
+These plots are based on 500 unique cities, randomly selected.  Compete city API log in [api_calls.log](./api_calls.log).  Full data in [weather.csv](./weather.csv).
 
 Plotted using Matplotlib and Seaborn.  Uses [citypy](https://github.com/wingchen/citipy) for ease of selecting cities.
 
@@ -31,22 +31,20 @@ srn.set()
 ```python
 logger = logging.getLogger('API calls')
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler('city.log')
-fh.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
+fh = logging.FileHandler('api_calls.log')
+formatter = logging.Formatter('%(asctime)s - %(message)s')
+fh.setFormatter(formatter)
 logger.addHandler(fh)
-logger.addHandler(ch)
 ```
 
 
 ```python
+np.random.seed(125)
 lats = np.random.randint(-90, 90, size=500)
 longs = np.random.randint(-180, 180, size=500)
 coords = pd.DataFrame({"latitude": lats, "longitude": longs})
 coords.head()
 ```
-
 
 <table border="1" class="dataframe">
   <thead>
@@ -59,49 +57,56 @@ coords.head()
   <tbody>
     <tr>
       <th>0</th>
-      <td>76</td>
-      <td>169</td>
+      <td>67</td>
+      <td>-117</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>12</td>
-      <td>86</td>
+      <td>-3</td>
+      <td>11</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>31</td>
-      <td>175</td>
+      <td>-23</td>
+      <td>-146</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>-6</td>
-      <td>-129</td>
+      <td>20</td>
+      <td>-19</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>8</td>
-      <td>-70</td>
+      <td>-47</td>
+      <td>6</td>
     </tr>
   </tbody>
 </table>
+
 
 ```python
 plt.hist(coords['latitude'])
 plt.show()
 ```
 
+
 ![png](output_4_0.png)
+
+
 
 ```python
 plt.hist(coords['longitude'])
 plt.show()
 ```
 
+
 ![png](output_5_0.png)
+
 
 
 ```python
 from secrets import API_KEY
+
 def get_weather_data(coords, time_between=1):
     """Hits OpenWeatherMap API to get weather data for coordinates.
     Coords is a dataframe of 2 columns: Latitude and Longitude.
@@ -109,9 +114,11 @@ def get_weather_data(coords, time_between=1):
     """
     results = []
     for ind, row in coords.iterrows():
-        query = f"http://api.openweathermap.org/data/2.5/weather?lat={row['latitude']}&lon={row['longitude']}&APPID={API_KEY}"
-        city = citipy.nearest_city(row['latitude'], row['longitude'])
-        logger.info(f"Call {ind}: {city.city_name} ({query})")
+        lat, lon = row['latitude'], row['longitude']
+        query = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&APPID={API_KEY}"
+        clean_url = query.rpartition("&")[0]
+        city = citipy.nearest_city(lat, lon)
+        logger.info(f"Call {ind}: {city.city_name} ({clean_url})")
         result = requests.get(query)
         results.append(result.json())
         time.sleep(time_between)
@@ -133,108 +140,111 @@ test_results
       'clouds': {'all': 1},
       'cod': 200,
       'coord': {'lat': 37, 'lon': -122},
-      'dt': 1522184280,
+      'dt': 1522341300,
       'id': 5381421,
-      'main': {'humidity': 45,
-       'pressure': 1023,
-       'temp': 293.87,
-       'temp_max': 295.15,
-       'temp_min': 291.15},
+      'main': {'humidity': 76,
+       'pressure': 1021,
+       'temp': 287.78,
+       'temp_max': 289.15,
+       'temp_min': 286.15},
       'name': 'Pasatiempo',
       'sys': {'country': 'US',
-       'id': 512,
-       'message': 0.164,
-       'sunrise': 1522159177,
-       'sunset': 1522204017,
+       'id': 399,
+       'message': 0.004,
+       'sunrise': 1522331815,
+       'sunset': 1522376913,
        'type': 1},
       'visibility': 16093,
       'weather': [{'description': 'clear sky',
         'icon': '01d',
         'id': 800,
         'main': 'Clear'}],
-      'wind': {'deg': 200, 'speed': 3.6}}]
+      'wind': {'deg': 331.003, 'speed': 1.32}}]
 
 
 
 
 ```python
-# Commenting out so I don't accidentally hit the API 500 more times.
-# full_results = get_weather_data(coords)
-# full_results[:3]
+full_results = get_weather_data(coords)
+full_results[:3]
 ```
 
 
 
 
     [{'base': 'stations',
-      'clouds': {'all': 36},
+      'clouds': {'all': 8},
       'cod': 200,
-      'coord': {'lat': 76, 'lon': 169},
-      'dt': 1522188523,
-      'id': 0,
-      'main': {'grnd_level': 1025.9,
-       'humidity': 88,
-       'pressure': 1025.9,
-       'sea_level': 1025.86,
-       'temp': 251.87,
-       'temp_max': 251.87,
-       'temp_min': 251.87},
-      'name': '',
-      'sys': {'message': 0.0049, 'sunrise': 1522086642, 'sunset': 1522137091},
-      'weather': [{'description': 'scattered clouds',
-        'icon': '03n',
-        'id': 802,
-        'main': 'Clouds'}],
-      'wind': {'deg': 299.501, 'speed': 1.32}},
-     {'base': 'stations',
-      'clouds': {'all': 0},
-      'cod': 200,
-      'coord': {'lat': 12, 'lon': 86},
-      'dt': 1522188531,
-      'id': 0,
-      'main': {'grnd_level': 1023.87,
-       'humidity': 100,
-       'pressure': 1023.87,
-       'sea_level': 1023.88,
-       'temp': 301.095,
-       'temp_max': 301.095,
-       'temp_min': 301.095},
-      'name': '',
-      'sys': {'message': 0.1637, 'sunrise': 1522109722, 'sunset': 1522153624},
+      'coord': {'lat': 67, 'lon': -117},
+      'dt': 1522343296,
+      'id': 5994339,
+      'main': {'grnd_level': 993.36,
+       'humidity': 69,
+       'pressure': 993.36,
+       'sea_level': 1052.95,
+       'temp': 246.398,
+       'temp_max': 246.398,
+       'temp_min': 246.398},
+      'name': 'Kugluktuk',
+      'sys': {'country': 'CA',
+       'message': 0.1637,
+       'sunrise': 1522328891,
+       'sunset': 1522377527},
       'weather': [{'description': 'clear sky',
-        'icon': '01n',
+        'icon': '02d',
         'id': 800,
         'main': 'Clear'}],
-      'wind': {'deg': 171.001, 'speed': 1.97}},
+      'wind': {'deg': 277.003, 'speed': 1.92}},
      {'base': 'stations',
-      'clouds': {'all': 36},
+      'clouds': {'all': 68},
       'cod': 200,
-      'coord': {'lat': 31, 'lon': 175},
-      'dt': 1522188526,
+      'coord': {'lat': -3, 'lon': 11},
+      'dt': 1522343290,
+      'id': 2397141,
+      'main': {'grnd_level': 997.01,
+       'humidity': 96,
+       'pressure': 997.01,
+       'sea_level': 1022.27,
+       'temp': 296.998,
+       'temp_max': 296.998,
+       'temp_min': 296.998},
+      'name': 'Province de la Nyanga',
+      'rain': {'3h': 5.7375},
+      'sys': {'country': 'GA',
+       'message': 0.0039,
+       'sunrise': 1522300682,
+       'sunset': 1522344180},
+      'weather': [{'description': 'moderate rain',
+        'icon': '10d',
+        'id': 501,
+        'main': 'Rain'}],
+      'wind': {'deg': 142.003, 'speed': 0.97}},
+     {'base': 'stations',
+      'clouds': {'all': 88},
+      'cod': 200,
+      'coord': {'lat': -23, 'lon': -146},
+      'dt': 1522343292,
       'id': 0,
-      'main': {'grnd_level': 1023.87,
+      'main': {'grnd_level': 1028.95,
        'humidity': 100,
-       'pressure': 1023.87,
-       'sea_level': 1023.88,
-       'temp': 290.695,
-       'temp_max': 290.695,
-       'temp_min': 290.695},
+       'pressure': 1028.95,
+       'sea_level': 1029,
+       'temp': 300.348,
+       'temp_max': 300.348,
+       'temp_min': 300.348},
       'name': '',
-      'sys': {'message': 0.003, 'sunrise': 1522088086, 'sunset': 1522132569},
-      'weather': [{'description': 'scattered clouds',
-        'icon': '03n',
-        'id': 802,
+      'sys': {'message': 0.0042, 'sunrise': 1522338680, 'sunset': 1522381510},
+      'weather': [{'description': 'overcast clouds',
+        'icon': '04d',
+        'id': 804,
         'main': 'Clouds'}],
-      'wind': {'deg': 273.501, 'speed': 12.37}}]
-
-
+      'wind': {'deg': 79.5029, 'speed': 5.77}}]
 
 
 ```python
 # Save the data out in case the world blows up
-# Commenting out so I don't accidentally overwrite my data
-# with open("weather.json", "w") as outfile:
-#     json.dump(full_results, outfile)
+with open("weather.json", "w") as outfile:
+    json.dump(full_results, outfile)
 
 ```
 
@@ -267,6 +277,7 @@ weather_df.columns = ["lat", "long", "temp", "humidity", "clouds", "wind"]
 weather_df.head()
 ```
 
+
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -282,55 +293,56 @@ weather_df.head()
   <tbody>
     <tr>
       <th>0</th>
-      <td>76</td>
-      <td>169</td>
-      <td>-6.304</td>
-      <td>88</td>
-      <td>36</td>
-      <td>2.952761</td>
+      <td>67</td>
+      <td>-117</td>
+      <td>-16.1536</td>
+      <td>69</td>
+      <td>8</td>
+      <td>4.294925</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>12</td>
-      <td>86</td>
-      <td>82.301</td>
-      <td>100</td>
-      <td>0</td>
-      <td>4.406772</td>
+      <td>-3</td>
+      <td>11</td>
+      <td>74.9264</td>
+      <td>96</td>
+      <td>68</td>
+      <td>2.169832</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>31</td>
-      <td>175</td>
-      <td>63.581</td>
+      <td>-23</td>
+      <td>-146</td>
+      <td>80.9564</td>
       <td>100</td>
-      <td>36</td>
-      <td>27.670948</td>
+      <td>88</td>
+      <td>12.907144</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>-6</td>
-      <td>-129</td>
-      <td>77.801</td>
+      <td>20</td>
+      <td>-19</td>
+      <td>67.3664</td>
       <td>100</td>
-      <td>0</td>
-      <td>11.788674</td>
+      <td>8</td>
+      <td>9.775428</td>
     </tr>
     <tr>
       <th>4</th>
+      <td>-47</td>
+      <td>6</td>
+      <td>44.7764</td>
+      <td>97</td>
       <td>8</td>
-      <td>-70</td>
-      <td>93.686</td>
-      <td>44</td>
-      <td>32</td>
-      <td>6.867406</td>
+      <td>13.354532</td>
     </tr>
   </tbody>
 </table>
 
+
 ```python
 # Commented out to avoid overwriting data
-# weather_df.to_csv("weather.csv")
+weather_df.to_csv("weather.csv")
 ```
 
 ## 1. Temperature vs. Latitude
@@ -421,17 +433,17 @@ There seems to be some correlation between wind speed and latitude.  I've includ
 
 ```python
 # API Log data
-with open("city.log", "r") as f:
+with open("api_calls.log", "r") as f:
     print(f.read())
 
 ```
 
-    Call 0: pevek (http://api.openweathermap.org/data/2.5/weather?lat=76&lon=169)
-    Call 1: kattivakkam (http://api.openweathermap.org/data/2.5/weather?lat=12&lon=86)
-    Call 2: nikolskoye (http://api.openweathermap.org/data/2.5/weather?lat=31&lon)
-    Call 3: atuona (http://api.openweathermap.org/data/2.5/weather?lat=-6&lon=-129)
-    Call 4: barinas (http://api.openweathermap.org/data/2.5/weather?lat=8&lon=-70)
-    Call 5: limbe (http://api.openweathermap.org/data/2.5/weather?lat=4&lon=9)
-    
+    2018-03-29 09:59:17,279 - Call 0: santa cruz (http://api.openweathermap.org/data/2.5/weather?lat=37&lon=-122)
+    2018-03-29 10:08:07,981 - Call 0: yellowknife (http://api.openweathermap.org/data/2.5/weather?lat=67&lon=-117)
+    2018-03-29 10:08:09,581 - Call 1: tchibanga (http://api.openweathermap.org/data/2.5/weather?lat=-3&lon=11)
+    2018-03-29 10:08:10,901 - Call 2: mataura (http://api.openweathermap.org/data/2.5/weather?lat=-23&lon=-146)
+    2018-03-29 10:08:12,228 - Call 3: nouadhibou (http://api.openweathermap.org/data/2.5/weather?lat=20&lon=-19)
+    2018-03-29 10:08:13,542 - Call 4: cape town (http://api.openweathermap.org/data/2.5/weather?lat=-47&lon=6)
+    2018-03-29 10:08:14,990 - Call 5: mataura (http://api.openweathermap.org/data/2.5/weather?lat=-31&lon=-150)
+
     ...
-```
